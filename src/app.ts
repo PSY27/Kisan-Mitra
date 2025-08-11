@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import config from './config';
 import { setupVoiceRoutes } from './voice/routes';
+import path from 'path';
 
 // Initialize Express app
 const app = express();
@@ -27,6 +28,27 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Set up voice routes
 setupVoiceRoutes(app);
+
+// Serve static files from the public directory
+const publicPath = path.join(__dirname, '../public');
+console.log('Configuring static files from:', publicPath);
+const publicDirExists = require('fs').existsSync(publicPath);
+console.log('Public directory exists:', publicDirExists);
+
+// List files in the public directory
+if (publicDirExists) {
+  const files = require('fs').readdirSync(publicPath);
+  console.log('Files in public directory:');
+  files.forEach((file: string) => console.log(' -', file));
+}
+
+// Serve static files from the public directory
+app.use(express.static(publicPath));
+
+// Route for the root path to serve index.html
+app.get('/', (req: Request, res: Response) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
